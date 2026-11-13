@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AppCtx, Avatar, Btn, Icon } from './ui.jsx'
-import { ALERTS, BRANDS, ENTRIES, ENVS, LOCALES, ROUTES } from './data.js'
+import { ALERTS, ALERT_TEMPLATES, BRANDS, ENTRIES, ENVS, LOCALES, ROUTES } from './data.js'
+import { api, detectApi, toUiAlert, toUiTemplate } from './api.js'
 import Dashboard from './screens/Dashboard.jsx'
 import Content from './screens/Content.jsx'
 import Editor from './screens/Editor.jsx'
@@ -93,7 +94,26 @@ export default function App() {
   const [alerts, setAlerts] = useState(ALERTS)
   const [routes, setRoutes] = useState(ROUTES)
   const [maxAge, setMaxAge] = useState(6)
+  const [apiLive, setApiLive] = useState(false)
+  const [templates, setTemplates] = useState(ALERT_TEMPLATES)
   const toastId = useRef(0)
+
+  // With the API running, alerts and templates come from the server; otherwise the mock data stays.
+  const reloadAlerts = useCallback(async () => setAlerts((await api('/alerts')).items.map(toUiAlert)), [])
+  useEffect(() => {
+    let off = false
+    detectApi().then(async (ok) => {
+      if (!ok || off) return
+      try {
+        const [a, t] = await Promise.all([api('/alerts'), api('/alert-templates')])
+        if (off) return
+        setAlerts(a.items.map(toUiAlert))
+        setTemplates(t.items.map(toUiTemplate))
+        setApiLive(true)
+      } catch { /* stay on mock data */ }
+    })
+    return () => { off = true }
+  }, [])
 
   useEffect(() => { document.documentElement.dataset.theme = theme }, [theme])
   useEffect(() => {
@@ -112,7 +132,7 @@ export default function App() {
   }, [])
 
   const liveAlerts = alerts.filter((a) => a.status === 'Live').length
-  const ctx = { nav, toast, entries, setEntries, alerts, setAlerts, routes, setRoutes, maxAge, setMaxAge, locale, setLocale, brand, env, theme }
+  const ctx = { nav, toast, entries, setEntries, alerts, setAlerts, routes, setRoutes, maxAge, setMaxAge, locale, setLocale, brand, env, theme, apiLive, templates, reloadAlerts }
   const Screen = SCREENS[route.screen] || Dashboard
   const activeNav = route.screen === 'editor' ? 'content' : route.screen
 
@@ -141,7 +161,7 @@ export default function App() {
               </div>
             ))}
           </nav>
-          <div className="sidebar-foot">Prototype · mock data · v0.1</div>
+          <div className="sidebar-foot">{apiLive ? 'Alerts and audit log: live API · rest: mock data' : 'Prototype · mock data · v0.1'}</div>
         </aside>
 
         <div className="main">

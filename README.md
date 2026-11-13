@@ -3,14 +3,22 @@
 Clickable prototype of an airline-focused content management system. It accompanies the
 product requirements document (PRD): https://claude.ai/artifact/Pq9UNwu67rRt1Lt2ZYsUcx
 
-Everything runs in the browser on mock data for a fictional airline ("Meridian Air").
-There is no backend yet; state resets on reload.
+The admin UI runs in the browser with mock data for a fictional airline ("Meridian Air").
+A first backend slice lives in [`server/`](server/README.md): content core, workflow, delivery API,
+travel alerts and audit log. When that server is running, the disruption centre and the audit log
+use it; every other screen still uses mock data.
 
 ## Run
 
 ```bash
 npm install
 npm run dev
+```
+
+To use the live API, start the server in a second terminal first:
+
+```bash
+cd server && npm install && npm run dev
 ```
 
 ## Screens

@@ -1,9 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Avatar, Badge, Btn, Card, PageHead, Tabs, useApp } from '../ui.jsx'
-import { AUDIT, ROLES, USERS } from '../data.js'
+import { AUDIT as MOCK_AUDIT, ROLES, USERS } from '../data.js'
+import { api, toUiAudit } from '../api.js'
 
 export default function Access({ params }) {
-  const { toast } = useApp()
+  const { toast, apiLive } = useApp()
+  const [AUDIT, setAudit] = useState(MOCK_AUDIT)
+  useEffect(() => {
+    if (apiLive) api('/audit?limit=200').then((r) => setAudit(r.items.map(toUiAudit))).catch(() => {})
+  }, [apiLive])
   const [tab, setTab] = useState(params.tab || 'Users')
   const [q, setQ] = useState('')
   const audit = AUDIT.filter((a) => a.join(' ').toLowerCase().includes(q.toLowerCase()))

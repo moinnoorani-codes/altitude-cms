@@ -1,17 +1,18 @@
 import { useState } from 'react'
 import { Badge, Btn, Card, Field, Icon, Modal, PageHead, useApp } from '../ui.jsx'
-import { ALERT_TEMPLATES, CHANNELS, LOCALES } from '../data.js'
+import { CHANNELS, LOCALES } from '../data.js'
+import { api } from '../api.js'
 
 const SEV = { 1: ['crit', 'Severity 1 · single approver'], 2: ['warn', 'Severity 2 · one reviewer'], 3: ['info', 'Severity 3 · standard workflow'] }
 
 export default function Disruption({ params }) {
-  const { toast, alerts, setAlerts } = useApp()
+  const { toast, alerts, setAlerts, apiLive, templates: ALERT_TEMPLATES, reloadAlerts } = useApp()
   const [open, setOpen] = useState(!!params.compose)
   const [show, setShow] = useState('Live')
-  const blank = { tpl: 't1', sev: 1, airport: 'LHR', title: '', body: '', channels: ['Web banner', 'App', 'Email'], hours: 12 }
+  const blank = { tpl: ALERT_TEMPLATES[0].id, sev: 1, airport: 'LHR', title: '', body: '', channels: ['Web banner', 'App', 'Email'], hours: 12 }
   const [f, setF] = useState(blank)
 
-  const tpl = ALERT_TEMPLATES.find((t) => t.id === f.tpl)
+  const tpl = ALERT_TEMPLATES.find((t) => t.id === f.tpl) || ALERT_TEMPLATES[0]
   const fill = (s) => s.replaceAll('{airport}', f.airport || 'the airport')
   const title = f.title || fill(tpl.title)
   const body = f.body || fill(tpl.body)
@@ -19,14 +20,32 @@ export default function Disruption({ params }) {
 
   const pickTpl = (id) => { const t = ALERT_TEMPLATES.find((x) => x.id === id); setF({ ...f, tpl: id, sev: t.sev, title: '', body: '' }) }
   const toggleCh = (c) => setF({ ...f, channels: f.channels.includes(c) ? f.channels.filter((x) => x !== c) : [...f.channels, c] })
-  const publish = () => {
+  const publish = async () => {
+    if (apiLive) {
+      try {
+        const airports = f.airport.split(/[\s,]+/).filter(Boolean)
+        const made = await api('/alerts', { method: 'POST', body: { templateId: tpl.id, severity: f.sev, title, body, airports, channels: f.channels, expiresInHours: f.hours } })
+        await reloadAlerts()
+        setOpen(false)
+        setF(blank)
+        toast(`Alert live on ${made.channels.length} channels · saved and audited by the API`)
+      } catch (err) { toast(`Not published: ${err.message}`) }
+      return
+    }
     const now = new Date().toTimeString().slice(0, 5)
     setAlerts((as) => [{ id: `al${Date.now()}`, sev: f.sev, title, scope: `${f.airport} · all flights · today`, channels: f.channels, by: 'Priya Raman', published: now, expires: `in ${f.hours} h`, status: 'Live', reach: 'Calculating…' }, ...as])
     setOpen(false)
     setF(blank)
     toast(`Alert live on ${f.channels.length} channels in ${LOCALES.length} languages · 4.1 s`)
   }
-  const end = (id) => { setAlerts((as) => as.map((a) => (a.id === id ? { ...a, status: 'Expired', expires: 'Ended manually' } : a))); toast('Alert ended and removed from all channels') }
+  const end = async (id) => {
+    if (apiLive) {
+      try { await api(`/alerts/${id}/end`, { method: 'POST' }); await reloadAlerts(); toast('Alert ended and removed from all channels') } catch (err) { toast(`Not ended: ${err.message}`) }
+      return
+    }
+    setAlerts((as) => as.map((a) => (a.id === id ? { ...a, status: 'Expired', expires: 'Ended manually' } : a)))
+    toast('Alert ended and removed from all channels')
+  }
 
   return (
     <div className="page">
@@ -74,7 +93,7 @@ export default function Disruption({ params }) {
           <div className="grid g2">
             <div className="col" style={{ gap: 14 }}>
               <Field label="Template" help="Pre-approved by Legal in all 8 languages.">
-                <select className="select" value={f.tpl} onChange={(e) => pickTpl(e.target.value)}>{ALERT_TEMPLATES.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select>
+                <select className="select" value={tpl.id} onChange={(e) => pickTpl(e.target.value)}>{ALERT_TEMPLATES.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select>
               </Field>
               <div className="grid g2">
                 <Field label="Airports (IATA)"><input className="input mono" value={f.airport} onChange={(e) => setF({ ...f, airport: e.target.value.toUpperCase() })} /></Field>

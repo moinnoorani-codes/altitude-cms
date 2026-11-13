@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AppCtx, Avatar, Btn, Icon } from './ui.jsx'
-import { ALERTS, ALERT_TEMPLATES, BRANDS, ENTRIES, ENVS, LOCALES, ROUTES } from './data.js'
-import { api, detectApi, toUiAlert, toUiTemplate } from './api.js'
+import { AppCtx, Btn } from './ui.jsx'
+import { BRANDS, ENVS, LOCALES, ROUTES } from './data.js'
+import { DEV_USERS, api, detectApi, getToken, setToken, toUiAlert, toUiEntry, toUiTemplate } from './api.js'
 import Dashboard from './screens/Dashboard.jsx'
 import Content from './screens/Content.jsx'
 import Editor from './screens/Editor.jsx'
@@ -16,25 +16,10 @@ import Access from './screens/Access.jsx'
 import Settings from './screens/Settings.jsx'
 
 const NAV = [
-  ['Workspace', [
-    ['home', 'Home', 'home'],
-    ['content', 'Content', 'file'],
-    ['assets', 'Assets', 'image'],
-    ['releases', 'Workflow and releases', 'layers'],
-  ]],
-  ['Airline', [
-    ['disruption', 'Disruption centre', 'alert'],
-    ['fares', 'Routes and fares', 'plane'],
-  ]],
-  ['Global', [
-    ['translations', 'Translations', 'globe'],
-    ['markets', 'Markets and locales', 'map'],
-  ]],
-  ['Build', [['model', 'Content model', 'box']]],
-  ['Admin', [
-    ['access', 'Users, roles and audit', 'users'],
-    ['settings', 'Settings', 'settings'],
-  ]],
+  ['Work', [['home', 'Overview'], ['content', 'Content'], ['translations', 'Translations'], ['releases', 'Workflow']]],
+  ['Airline', [['disruption', 'Disruption centre'], ['fares', 'Routes and fares']]],
+  ['Library', [['assets', 'Assets'], ['model', 'Content model'], ['markets', 'Markets']]],
+  ['Admin', [['access', 'Users and audit'], ['settings', 'Settings']]],
 ]
 
 const SCREENS = {
@@ -47,13 +32,13 @@ function Palette({ onClose, nav, entries, setTheme, theme }) {
   const [sel, setSel] = useState(0)
   const items = useMemo(() => {
     const all = [
-      ...NAV.flatMap(([, list]) => list.map(([id, label, icon]) => ({ label: `Go to ${label}`, hint: 'Navigate', icon, run: () => nav(id) }))),
-      { label: 'New travel alert', hint: 'Action', icon: 'alert', run: () => nav('disruption', { compose: true }) },
-      { label: `Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`, hint: 'Action', icon: theme === 'dark' ? 'sun' : 'moon', run: () => setTheme(theme === 'dark' ? 'light' : 'dark') },
-      ...entries.map((e) => ({ label: e.title, hint: e.type, icon: 'file', run: () => nav('editor', { id: e.id }) })),
+      ...NAV.flatMap(([, list]) => list.map(([id, label]) => ({ label, hint: 'Go to', run: () => nav(id) }))),
+      { label: 'New travel alert', hint: 'Action', run: () => nav('disruption', { compose: true }) },
+      { label: `Use ${theme === 'dark' ? 'light' : 'dark'} theme`, hint: 'Action', run: () => setTheme(theme === 'dark' ? 'light' : 'dark') },
+      ...entries.map((e) => ({ label: e.title, hint: e.type, run: () => nav('editor', { id: e.id }) })),
     ]
     const s = q.trim().toLowerCase()
-    return (s ? all.filter((i) => `${i.label} ${i.hint}`.toLowerCase().includes(s)) : all).slice(0, 12)
+    return (s ? all.filter((i) => `${i.label} ${i.hint}`.toLowerCase().includes(s)) : all).slice(0, 14)
   }, [q, entries, nav, setTheme, theme])
   const run = (i) => { if (i) { i.run(); onClose() } }
   const onKey = (e) => {
@@ -64,19 +49,30 @@ function Palette({ onClose, nav, entries, setTheme, theme }) {
   }
   return (
     <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" role="dialog" aria-label="Command palette">
+      <div className="modal" role="dialog" aria-label="Search">
         <input autoFocus className="palette-input" placeholder="Search entries, screens and actions" value={q} onChange={(e) => { setQ(e.target.value); setSel(0) }} onKeyDown={onKey} />
         <div className="palette-list">
           {items.length === 0 && <div className="empty">Nothing matches “{q}”.</div>}
           {items.map((i, n) => (
             <button key={i.label + n} className={`palette-item ${n === sel ? 'sel' : ''}`} onMouseEnter={() => setSel(n)} onClick={() => run(i)}>
-              <Icon name={i.icon} />
               <span className="grow truncate">{i.label}</span>
-              <span className="faint" style={{ fontSize: 12 }}>{i.hint}</span>
+              <span className="faint mono">{i.hint}</span>
             </button>
           ))}
         </div>
       </div>
+    </div>
+  )
+}
+
+function Offline({ retry }) {
+  return (
+    <div style={{ maxWidth: 560, margin: '14vh auto', padding: 24 }} className="col">
+      <div className="brand-name">Altitude</div>
+      <h1>The API server is not running</h1>
+      <p className="muted">Content, translations, workflow, alerts and the audit log are read from the server. Start it in a second terminal, then retry.</p>
+      <pre className="mono card card-body" style={{ margin: '8px 0' }}>cd server && npm install && npm run dev</pre>
+      <div><Btn kind="primary" onClick={retry}>Retry</Btn></div>
     </div>
   )
 }
@@ -90,49 +86,59 @@ export default function App() {
   const [palette, setPalette] = useState(false)
   const [menu, setMenu] = useState(false)
   const [toasts, setToasts] = useState([])
-  const [entries, setEntries] = useState(ENTRIES)
-  const [alerts, setAlerts] = useState(ALERTS)
+  const [status, setStatus] = useState('loading') // loading | ready | offline
+  const [me, setMe] = useState(null)
+  const [entries, setEntries] = useState([])
+  const [types, setTypes] = useState([])
+  const [alerts, setAlerts] = useState([])
+  const [templates, setTemplates] = useState([])
   const [routes, setRoutes] = useState(ROUTES)
   const [maxAge, setMaxAge] = useState(6)
-  const [apiLive, setApiLive] = useState(false)
-  const [templates, setTemplates] = useState(ALERT_TEMPLATES)
+  const [who, setWho] = useState(getToken())
   const toastId = useRef(0)
-
-  // With the API running, alerts and templates come from the server; otherwise the mock data stays.
-  const reloadAlerts = useCallback(async () => setAlerts((await api('/alerts')).items.map(toUiAlert)), [])
-  useEffect(() => {
-    let off = false
-    detectApi().then(async (ok) => {
-      if (!ok || off) return
-      try {
-        const [a, t] = await Promise.all([api('/alerts'), api('/alert-templates')])
-        if (off) return
-        setAlerts(a.items.map(toUiAlert))
-        setTemplates(t.items.map(toUiTemplate))
-        setApiLive(true)
-      } catch { /* stay on mock data */ }
-    })
-    return () => { off = true }
-  }, [])
 
   useEffect(() => { document.documentElement.dataset.theme = theme }, [theme])
   useEffect(() => {
-    const h = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setPalette((p) => !p) }
-    }
+    const h = (e) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setPalette((p) => !p) } }
     window.addEventListener('keydown', h)
     return () => window.removeEventListener('keydown', h)
   }, [])
 
   const nav = useCallback((screen, params = {}) => { setRoute({ screen, params }); setMenu(false) }, [])
-  const toast = useCallback((msg) => {
+  const toast = useCallback((msg, err = false) => {
     const id = ++toastId.current
-    setToasts((t) => [...t, { id, msg }])
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3600)
+    setToasts((t) => [...t, { id, msg, err }])
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), err ? 6000 : 3200)
   }, [])
 
+  const reloadEntries = useCallback(async () => setEntries((await api('/entries')).items.map(toUiEntry)), [])
+  const reloadAlerts = useCallback(async () => setAlerts((await api('/alerts')).items.map(toUiAlert)), [])
+  const load = useCallback(async () => {
+    if (!(await detectApi())) return setStatus('offline')
+    try {
+      const [m, t, tp] = await Promise.all([api('/me'), api('/alert-templates'), api('/types')])
+      setMe(m); setTemplates(t.items.map(toUiTemplate)); setTypes(tp.items)
+      await Promise.all([reloadEntries(), reloadAlerts()])
+      setStatus('ready')
+    } catch (err) {
+      toast(err.message, true)
+      setStatus('offline')
+    }
+  }, [reloadEntries, reloadAlerts, toast])
+  useEffect(() => { load() }, [load])
+
+  /** Runs a server change, reports the outcome, and returns whether it worked. */
+  const run = useCallback(async (fn, okMsg) => {
+    try { const out = await fn(); if (okMsg) toast(okMsg); return out ?? true } catch (err) { toast(err.message, true); return false }
+  }, [toast])
+
+  const switchUser = async (t) => { setToken(t); setWho(t); await load() }
+
+  if (status === 'loading') return <div className="empty">Loading…</div>
+  if (status === 'offline') return <Offline retry={() => { setStatus('loading'); load() }} />
+
   const liveAlerts = alerts.filter((a) => a.status === 'Live').length
-  const ctx = { nav, toast, entries, setEntries, alerts, setAlerts, routes, setRoutes, maxAge, setMaxAge, locale, setLocale, brand, env, theme, apiLive, templates, reloadAlerts }
+  const ctx = { nav, toast, run, me, entries, types, reloadEntries, alerts, templates, reloadAlerts, routes, setRoutes, maxAge, setMaxAge, locale, setLocale, brand, env, theme }
   const Screen = SCREENS[route.screen] || Dashboard
   const activeNav = route.screen === 'editor' ? 'content' : route.screen
 
@@ -141,27 +147,23 @@ export default function App() {
       <div className="shell">
         <aside className={`sidebar ${menu ? 'open' : ''}`}>
           <div className="brand">
-            <div className="brand-mark"><Icon name="plane" size={16} /></div>
-            <div>
-              <div className="brand-name">Altitude</div>
-              <div className="brand-sub">Content platform for airlines</div>
-            </div>
+            <div className="brand-name">Altitude</div>
+            <div className="brand-sub">{brand}</div>
           </div>
           <nav className="nav" aria-label="Main">
             {NAV.map(([group, list]) => (
               <div key={group}>
                 <div className="nav-group">{group}</div>
-                {list.map(([id, label, icon]) => (
+                {list.map(([id, label]) => (
                   <button key={id} className={`nav-item ${activeNav === id ? 'active' : ''}`} onClick={() => nav(id)}>
-                    <Icon name={icon} />
                     <span>{label}</span>
-                    {id === 'disruption' && liveAlerts > 0 && <span className="count">{liveAlerts}</span>}
+                    {id === 'disruption' && liveAlerts > 0 && <span className="count">{liveAlerts} live</span>}
                   </button>
                 ))}
               </div>
             ))}
           </nav>
-          <div className="sidebar-foot">{apiLive ? 'Alerts and audit log: live API · rest: mock data' : 'Prototype · mock data · v0.1'}</div>
+          <div className="sidebar-foot">Live data: content, translations, workflow, alerts, audit.<br />Sample data: routes, assets, model, markets, settings.</div>
         </aside>
 
         <div className="main">
@@ -169,37 +171,39 @@ export default function App() {
             <Btn kind="ghost menu-btn" icon="menu" aria-label="Open menu" onClick={() => setMenu((m) => !m)} />
             <label className="ctx">
               <span>Brand</span>
-              <select value={brand} onChange={(e) => { setBrand(e.target.value); toast(`Switched to ${e.target.value}`) }}>
-                {BRANDS.map((b) => <option key={b}>{b}</option>)}
-              </select>
+              <select aria-label="Brand" value={brand} onChange={(e) => setBrand(e.target.value)}>{BRANDS.map((b) => <option key={b}>{b}</option>)}</select>
             </label>
             <label className="ctx hide-sm">
-              <span>Env</span>
-              <select value={env} onChange={(e) => setEnv(e.target.value)}>{ENVS.map((b) => <option key={b}>{b}</option>)}</select>
+              <span>Environment</span>
+              <select aria-label="Environment" value={env} onChange={(e) => setEnv(e.target.value)}>{ENVS.map((b) => <option key={b}>{b}</option>)}</select>
             </label>
             <label className="ctx hide-sm">
               <span>Market</span>
-              <select value={locale} onChange={(e) => setLocale(e.target.value)}>
-                {LOCALES.map((l) => <option key={l.code} value={l.code}>{l.market} · {l.code}</option>)}
+              <select aria-label="Market" value={locale} onChange={(e) => setLocale(e.target.value)}>
+                {LOCALES.map((l) => <option key={l.code} value={l.code}>{l.market} ({l.code})</option>)}
               </select>
             </label>
             <div className="grow" />
             <button className="search-trigger" onClick={() => setPalette(true)} aria-label="Search">
-              <Icon name="search" />
-              <span className="lbl">Search or jump to…</span>
+              <span className="lbl">Search</span>
               <span className="kbd">Ctrl K</span>
             </button>
-            <Btn kind="ghost" icon={theme === 'dark' ? 'sun' : 'moon'} aria-label="Toggle theme" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} />
-            <Avatar initials="PR" />
+            <label className="who hide-sm" title="Sign-in is not built yet. This switches between the server's demo users.">
+              Acting as
+              <select value={who} onChange={(e) => switchUser(e.target.value)}>
+                {DEV_USERS.map((u) => <option key={u.token} value={u.token}>{u.name} · {u.role}</option>)}
+              </select>
+            </label>
+            <Btn kind="ghost" size="sm" aria-label="Toggle theme" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>{theme === 'dark' ? 'Light' : 'Dark'}</Btn>
           </header>
           <main className="content" onClick={() => menu && setMenu(false)}>
-            <Screen key={route.screen + (route.params.id || '')} params={route.params} />
+            <Screen key={route.screen + (route.params.id || '') + who} params={route.params} />
           </main>
         </div>
       </div>
       {palette && <Palette onClose={() => setPalette(false)} nav={nav} entries={entries} theme={theme} setTheme={setTheme} />}
       <div className="toasts" aria-live="polite">
-        {toasts.map((t) => <div key={t.id} className="toast"><Icon name="check" />{t.msg}</div>)}
+        {toasts.map((t) => <div key={t.id} className={`toast ${t.err ? 'err' : ''}`}>{t.msg}</div>)}
       </div>
     </AppCtx.Provider>
   )

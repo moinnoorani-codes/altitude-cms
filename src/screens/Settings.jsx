@@ -28,6 +28,7 @@ export default function Settings() {
   return (
     <div className="page">
       <PageHead title="Settings" sub={`Organisation: Meridian Aviation Group · current brand: ${brand}`} />
+      <div className="banner">Sample data. This screen is not connected to the server yet.</div>
       <Tabs tabs={['Organisation', 'API tokens', 'Security', 'AI', 'Plan']} value={tab} onChange={setTab} />
 
       {tab === 'Organisation' && (
@@ -69,7 +70,7 @@ export default function Settings() {
       )}
 
       {tab === 'Plan' && (
-        <div className="grid g3">
+        <div className="figs" style={{ flexWrap: 'wrap' }}>
           {[['Editor seats', 'Unlimited', '73 active'], ['Locales', 'Unlimited', '8 live'], ['Custom roles', 'Unlimited', '7 defined'], ['Cached delivery', 'Unmetered', '412 M requests this month'], ['Origin requests', 'Fair use', '3% of allowance'], ['AI assistance', 'Included', '18% of fair-use allowance']].map(([a, b, c]) => (
             <div key={a} className="card stat" style={{ cursor: 'default' }}><span className="label">{a}</span><span className="value" style={{ fontSize: 22 }}>{b}</span><span className="hint">{c}</span></div>
           ))}

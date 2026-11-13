@@ -16,6 +16,7 @@ export default function Assets() {
       <PageHead title="Assets" sub="Images, video and documents with rights tracking. Assets with expired rights cannot be published in any market.">
         <Btn kind="primary" icon="plus" onClick={() => toast('Upload started · AI tagging and alt text will follow')}>Upload</Btn>
       </PageHead>
+      <div className="banner">Sample data. This screen is not connected to the server yet.</div>
       <div className="toolbar">
         <input className="input" placeholder="Search assets" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search assets" />
         {tags.map((t) => <button key={t} className={`chip ${tag === t ? 'on' : ''}`} onClick={() => setTag(t)}>{t}</button>)}
@@ -23,7 +24,7 @@ export default function Assets() {
       <div className="asset-grid">
         {rows.map((a) => (
           <div key={a.id} className="card asset" onClick={() => toast(`${a.name} · used in ${a.id.length + 2} entries`)}>
-            <div className="thumb" style={{ background: `linear-gradient(135deg, ${a.g[0]}, ${a.g[1]})` }} />
+            <div className="thumb" style={{ background: a.g[0] }} />
             <div className="meta">
               <div className="truncate" style={{ fontWeight: 600 }}>{a.name}</div>
               <div className="faint" style={{ fontSize: 12 }}>{a.dims} · {a.size}</div>

@@ -26,27 +26,7 @@ export const USERS = [
   { id: 'u7', name: 'Hannah Lindqvist', initials: 'HL', role: 'Revenue analyst', scope: 'Routes and fares', team: 'Revenue', last: '40 min ago', mfa: true },
 ]
 
-const cov = (o = {}) => ({
-  'en-GB': 'current', 'en-US': 'current', 'de-DE': 'current', 'fr-FR': 'current',
-  'ar-AE': 'current', 'hi-IN': 'current', 'ja-JP': 'current', 'pt-BR': 'current', ...o,
-})
 
-export const ENTRIES = [
-  { id: 'e1', title: 'Summer sale: Europe from £49', type: 'Promotion', stage: 'Legal review', author: 'u1', updated: '12 min ago', expires: '30 Nov 2026', l10n: cov({ 'ar-AE': 'progress', 'hi-IN': 'missing', 'ja-JP': 'missing', 'pt-BR': 'stale' }) },
-  { id: 'e2', title: 'Baggage allowance', type: 'Policy', stage: 'Published', author: 'u5', updated: '2 days ago', expires: null, l10n: cov({ 'de-DE': 'stale', 'fr-FR': 'stale' }) },
-  { id: 'e3', title: 'London to Dubai', type: 'Route page', stage: 'Published', author: 'u7', updated: '1 h ago', expires: null, l10n: cov() },
-  { id: 'e4', title: 'Check-in and travel documents', type: 'Travel info', stage: 'In review', author: 'u2', updated: '3 h ago', expires: null, l10n: cov({ 'ja-JP': 'review', 'pt-BR': 'progress' }) },
-  { id: 'e5', title: 'Business cabin: The Meridian Suite', type: 'Cabin', stage: 'Approved', author: 'u1', updated: 'Yesterday', expires: null, l10n: cov({ 'hi-IN': 'missing' }) },
-  { id: 'e6', title: 'Meridian Miles Gold benefits', type: 'Loyalty tier', stage: 'Published', author: 'u1', updated: '5 days ago', expires: null, l10n: cov({ 'ar-AE': 'stale' }) },
-  { id: 'e7', title: 'Travelling with assistance', type: 'Policy', stage: 'Published', author: 'u5', updated: '3 weeks ago', expires: null, l10n: cov() },
-  { id: 'e8', title: 'Tokyo destination guide', type: 'Destination guide', stage: 'Draft', author: 'u2', updated: '25 min ago', expires: null, l10n: cov({ 'de-DE': 'missing', 'fr-FR': 'missing', 'ar-AE': 'missing', 'hi-IN': 'missing', 'pt-BR': 'missing', 'ja-JP': 'progress' }) },
-  { id: 'e9', title: 'Conditions of carriage', type: 'Legal text', stage: 'Published', author: 'u5', updated: '2 months ago', expires: null, l10n: cov() },
-  { id: 'e10', title: 'Extra legroom seats', type: 'Ancillary', stage: 'In review', author: 'u7', updated: '4 h ago', expires: null, l10n: cov({ 'pt-BR': 'missing', 'ja-JP': 'stale' }) },
-  { id: 'e11', title: 'Homepage', type: 'Page', stage: 'Published', author: 'u1', updated: '1 h ago', expires: null, l10n: cov() },
-  { id: 'e12', title: 'Delayed or cancelled flights: your rights', type: 'Policy', stage: 'Legal review', author: 'u5', updated: '6 h ago', expires: null, l10n: cov({ 'en-US': 'review', 'pt-BR': 'stale' }) },
-  { id: 'e13', title: 'Black Friday: long haul from £329', type: 'Promotion', stage: 'Draft', author: 'u1', updated: '8 min ago', expires: '1 Dec 2026', l10n: cov({ 'de-DE': 'missing', 'fr-FR': 'missing', 'ar-AE': 'missing', 'hi-IN': 'missing', 'ja-JP': 'missing', 'pt-BR': 'missing', 'en-US': 'progress' }) },
-  { id: 'e14', title: 'Lounge: London Heathrow T3', type: 'Lounge', stage: 'Approved', author: 'u2', updated: '2 days ago', expires: null, l10n: cov({ 'ja-JP': 'stale' }) },
-]
 
 export const TYPES = [
   { id: 'promotion', name: 'Promotion', kind: 'Collection', entries: 48, airline: false, fields: [
@@ -90,20 +70,7 @@ export const ASSETS = [
   { id: 'a8', name: 'safety-video-2026.mp4', dims: '3840 × 2160', size: '412 MB', tags: ['video', 'safety'], rights: 'Owned', state: 'ok', g: ['#22262e', '#58606e'] },
 ]
 
-export const ALERTS = [
-  { id: 'al1', sev: 1, title: 'Heavy snow at London Heathrow', scope: 'LHR · all flights · 13–14 Nov', channels: ['Web banner', 'App', 'Email', 'SMS', 'Kiosks'], by: 'Daniel Okafor', published: '09:42', expires: 'Today 23:59', status: 'Live', reach: '18,400 passengers' },
-  { id: 'al2', sev: 2, title: 'French air traffic control strike', scope: 'CDG, ORY, NCE · 15 Nov', channels: ['Web banner', 'App', 'Email'], by: 'Daniel Okafor', published: 'Yesterday 16:10', expires: '16 Nov 06:00', status: 'Live', reach: '6,250 passengers' },
-  { id: 'al3', sev: 3, title: 'New entry requirements for Japan', scope: 'HND, NRT, KIX · from 1 Dec', channels: ['Web banner', 'Help centre'], by: 'Mei Tanaka', published: '10 Nov', expires: '1 Jan 2027', status: 'Live', reach: 'Japan routes' },
-  { id: 'al4', sev: 2, title: 'Baggage system fault at Dubai T1', scope: 'DXB · 9 Nov', channels: ['Web banner', 'App', 'Kiosks'], by: 'Daniel Okafor', published: '9 Nov 05:20', expires: '9 Nov 14:00', status: 'Expired', reach: '3,900 passengers' },
-]
 
-export const ALERT_TEMPLATES = [
-  { id: 't1', name: 'Severe weather', sev: 1, title: 'Severe weather at {airport}', body: 'Severe weather is affecting flights to and from {airport}. Please check your flight status before travelling to the airport. If your flight is cancelled you can rebook or request a refund online at no charge.' },
-  { id: 't2', name: 'Industrial action', sev: 2, title: 'Industrial action affecting {airport}', body: 'Planned industrial action may disrupt flights at {airport}. We will contact affected customers directly. You can change your travel dates free of charge.' },
-  { id: 't3', name: 'Airspace closure', sev: 1, title: 'Airspace closure: flights rerouted', body: 'Due to an airspace closure some flights are delayed or rerouted. We are contacting affected customers. Your rights under passenger regulations are unaffected.' },
-  { id: 't4', name: 'System outage', sev: 2, title: 'Check-in system disruption', body: 'We are experiencing a technical issue with check-in. Please arrive at the airport early. We apologise for the inconvenience.' },
-  { id: 't5', name: 'Entry rule change', sev: 3, title: 'Updated entry requirements', body: 'Entry requirements for your destination have changed. Please check that your travel documents meet the new rules before you fly.' },
-]
 
 export const CHANNELS = ['Web banner', 'App', 'Email', 'SMS', 'Kiosks', 'Help centre', 'Contact centre']
 
@@ -129,16 +96,6 @@ export const RELEASES = [
   { id: 'rel4', name: 'Baggage policy update', when: '4 Nov, 08:00 UTC', items: 9, markets: 8, status: 'Published', ready: 100 },
 ]
 
-export const AUDIT = [
-  ['09:42:07', 'Daniel Okafor', 'Published alert', 'Heavy snow at London Heathrow', 'Fast-path, severity 1 · 5 channels'],
-  ['09:38:51', 'Altitude AI', 'Drafted translation', 'Summer sale: Europe from £49 · ar-AE', 'Model: customer key · awaiting human review'],
-  ['09:31:20', 'Priya Raman', 'Moved to Legal review', 'Summer sale: Europe from £49', 'Fare claim detected · legal step mandatory'],
-  ['09:12:44', 'Hannah Lindqvist', 'Changed freshness rule', 'Routes and fares · United Kingdom', 'Max fare age 12 h → 6 h'],
-  ['08:55:02', 'Mei Tanaka', 'Approved', 'Delayed or cancelled flights: your rights · en-GB', 'Four-eyes satisfied'],
-  ['08:40:19', 'Lucas Ferreira', 'Created API token', 'web-frontend-staging', 'Scope: delivery, preview · expires in 90 days'],
-  ['08:02:33', 'System', 'Blocked publish', 'Homepage · hero image', 'Asset rights expired: family-boarding.jpg'],
-  ['Yesterday 17:20', 'Tomas Keller', 'Sent to translation', '12 entries · de-DE, fr-FR', 'Agency connector · est. €418'],
-]
 
 export const ROLES = [
   { name: 'Content lead', users: 4, perms: ['Create', 'Edit', 'Approve', 'Publish'], scope: 'All types · all markets' },
@@ -150,19 +107,4 @@ export const ROLES = [
   { name: 'Agency contributor', users: 14, perms: ['Create', 'Edit'], scope: 'Assigned campaigns · no publish' },
 ]
 
-export const blankContent = (e) => ({
-  heroTitle: e.title,
-  heroSubtitle: e.type === 'Promotion'
-    ? 'Book by 30 November for travel between January and March. Limited seats, price includes taxes and one cabin bag.'
-    : 'Everything you need to know before you fly with Meridian Air.',
-  cta: e.type === 'Promotion' ? 'Search flights' : 'Find out more',
-  body: 'Fly direct from London and Manchester to more than 60 destinations. Change your dates free of charge up to 7 days before departure.',
-  fareFrom: e.type === 'Promotion' ? '49' : '',
-  slug: e.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-})
 
-export const SAMPLE_TRANSLATIONS = {
-  'de-DE': { heroTitle: 'Sommer-Sale: Europa ab 49 £', heroSubtitle: 'Bis 30. November buchen, zwischen Januar und März reisen. Begrenzte Plätze, Preis inklusive Steuern und Handgepäck.', cta: 'Flüge suchen', body: 'Fliegen Sie direkt ab London und Manchester zu mehr als 60 Zielen. Kostenlose Umbuchung bis 7 Tage vor Abflug.' },
-  'fr-FR': { heroTitle: 'Soldes d’été : l’Europe dès 49 £', heroSubtitle: 'Réservez avant le 30 novembre pour voyager entre janvier et mars. Places limitées, taxes et bagage cabine inclus.', cta: 'Rechercher des vols', body: 'Volez sans escale depuis Londres et Manchester vers plus de 60 destinations. Modification gratuite jusqu’à 7 jours avant le départ.' },
-  'ar-AE': { heroTitle: 'عروض الصيف: أوروبا ابتداءً من 49 جنيهاً', heroSubtitle: 'احجز قبل 30 نوفمبر للسفر بين يناير ومارس. المقاعد محدودة والسعر يشمل الضرائب وحقيبة مقصورة واحدة.', cta: 'ابحث عن رحلات', body: 'سافر مباشرة من لندن ومانشستر إلى أكثر من 60 وجهة. غيّر تواريخ سفرك مجاناً حتى 7 أيام قبل المغادرة.' },
-}

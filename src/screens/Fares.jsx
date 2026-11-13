@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Badge, Btn, Card, Icon, PageHead, useApp } from '../ui.jsx'
+import { Badge, Btn, Card, PageHead, useApp } from '../ui.jsx'
 import { LOCALES } from '../data.js'
 
 const RATE = { GBP: 1, USD: 1.27, EUR: 1.17, AED: 4.66, INR: 106, JPY: 190, BRL: 6.9 }
@@ -24,11 +24,12 @@ export default function Fares() {
   return (
     <div className="page">
       <PageHead title="Routes and fares" sub={`Programmatic landing pages generated from the route network and the live fare feed. Showing prices for ${loc.market} (${loc.currency}).`}>
-        <Btn icon="clock" onClick={refresh}>Refresh fare feed</Btn>
+        <Btn onClick={refresh}>Refresh fare feed</Btn>
         <Btn kind="primary" onClick={() => toast('Template editor opens in the visual page builder')}>Edit page template</Btn>
       </PageHead>
+      <div className="banner">Sample data. This screen is not connected to the server yet.</div>
 
-      <div className="grid g3">
+      <div className="figs">
         <div className="card stat" style={{ cursor: 'default' }}><span className="label">Route pages</span><span className="value">2,140</span><span className="hint">{routes.length} shown · 8 markets · 1 template</span></div>
         <div className="card stat" style={{ cursor: 'default' }}><span className="label">Stale fares</span><span className="value" style={{ color: staleCount ? 'var(--warn)' : 'var(--good)' }}>{staleCount}</span><span className="hint">price hidden, shows “check latest fares”</span></div>
         <div className="card card-body col" style={{ justifyContent: 'center' }}>
@@ -82,7 +83,7 @@ export default function Fares() {
             <div style={{ border: '1px solid var(--line)', borderRadius: 8, overflow: 'hidden', background: '#fff', color: '#14171f' }}>
               <div className="site-nav"><span>MERIDIAN AIR</span><span>{loc.market}</span></div>
               <div className="site-hero">
-                <h4>Flights from {sel.od.replace(' to ', ' to ')}</h4>
+                <h4>Flights from {sel.od}</h4>
                 <p>{stale(sel) ? 'Check the latest fares for your dates.' : `One way from ${price(sel.fare)}, including taxes and fees. Price found ${ageText(sel.age)} ago.`}</p>
                 <span className="site-cta">Search {sel.o} → {sel.d}</span>
               </div>
@@ -94,7 +95,7 @@ export default function Fares() {
               <div className="spread"><span className="muted">hreflang</span><span>8 markets linked</span></div>
               <div className="spread"><span className="muted">Editorial overrides</span><span>Hero copy, 4 FAQs</span></div>
             </div>
-            <div className="banner"><Icon name="spark" /><span>Unique intro copy was drafted by AI and approved in a 5% human review sample.</span></div>
+            
           </div>
         </aside>
       )}

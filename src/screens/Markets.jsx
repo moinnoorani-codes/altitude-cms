@@ -12,6 +12,7 @@ export default function Markets() {
       <PageHead title="Markets and locales" sub="Unlimited markets on every plan. Each market has a language, currency, fallback chain and regulatory pack.">
         <Btn kind="primary" icon="plus" onClick={() => toast('Add market: choose country, language and fallback')}>Add market</Btn>
       </PageHead>
+      <div className="banner">Sample data. This screen is not connected to the server yet.</div>
       <Card flush>
         <div className="table-wrap">
           <table>

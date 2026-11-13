@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Badge, Btn, Card, Field, Icon, Modal, PageHead, useApp } from '../ui.jsx'
+import { Badge, Btn, Card, Field, Modal, PageHead, useApp } from '../ui.jsx'
 import { FIELD_TYPES, TYPES } from '../data.js'
 
 export default function Model() {
@@ -25,13 +25,13 @@ export default function Model() {
         <Btn onClick={() => toast('Schema exported as TypeScript to altitude.schema.ts')}>Export as code</Btn>
         <Btn kind="primary" icon="plus" onClick={() => toast('New content type created')}>New type</Btn>
       </PageHead>
+      <div className="banner">Sample data. This screen is not connected to the server yet.</div>
 
       <div className="grid" style={{ gridTemplateColumns: 'minmax(220px, 280px) minmax(0, 1fr)' }}>
         <Card flush>
           <div className="list">
             {types.map((x) => (
               <button key={x.id} className="item" onClick={() => setCur(x.id)} style={{ background: x.id === cur ? 'var(--accent-soft)' : undefined }}>
-                <Icon name={x.airline ? 'plane' : 'box'} />
                 <div className="grow"><div style={{ fontWeight: 600 }}>{x.name}</div><div className="faint" style={{ fontSize: 12 }}>{x.kind} · {x.entries.toLocaleString('en-GB')}</div></div>
               </button>
             ))}

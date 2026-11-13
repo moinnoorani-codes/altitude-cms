@@ -41,7 +41,7 @@ export function Icon({ name, size = 16 }) {
 export function Btn({ kind = '', size = '', icon, children, ...rest }) {
   return (
     <button type="button" className={`btn ${kind} ${size} ${!children && icon ? 'icon' : ''}`} {...rest}>
-      {icon && <Icon name={icon} size={size === 'sm' ? 14 : 16} />}
+      {icon && !children && <Icon name={icon} size={size === 'sm' ? 14 : 16} />}
       {children}
     </button>
   )
@@ -51,7 +51,7 @@ export const Badge = ({ tone = '', plain, children }) => (
   <span className={`badge ${tone} ${plain ? 'plain' : ''}`}>{children}</span>
 )
 
-const STAGE_TONE = { Draft: '', 'In review': 'info', 'Legal review': 'violet', Approved: 'warn', Published: 'good' }
+const STAGE_TONE = { Draft: '', 'In review': 'info', 'Legal review': 'info', Approved: 'warn', Published: 'good' }
 export const StageBadge = ({ stage }) => <Badge tone={STAGE_TONE[stage]}>{stage}</Badge>
 
 export function Card({ title, action, children, flush, style }) {
@@ -122,7 +122,6 @@ export const PageHead = ({ title, sub, children }) => (
   <div className="page-head">
     <div>
       <h1>{title}</h1>
-      {sub && <p>{sub}</p>}
     </div>
     <div className="row wrap">{children}</div>
   </div>

@@ -10,6 +10,8 @@ content model, markets, users and settings still show sample data and say so on 
 Sign-in is not built yet: the "Acting as" switcher in the top bar changes between the server's demo users,
 which is how you try the approval rules (for example, an author cannot approve their own promotion).
 
+Compliance status, including what is still open before production use: [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md).
+
 ## Run
 
 ```bash

@@ -170,3 +170,72 @@ test('demo seed loads cleanly and is idempotent', async () => {
   assert.equal(items[0].l10n['de-DE'], 'stale')
   assert.equal(items[0].published, true)
 })
+
+test('responses carry security headers; management responses are never cached', async () => {
+  const res = await app.inject({ method: 'GET', url: '/v1/me', headers: { authorization: 'Bearer dev-priya' } })
+  assert.equal(res.headers['x-content-type-options'], 'nosniff')
+  assert.equal(res.headers['x-frame-options'], 'DENY')
+  assert.equal(res.headers['cache-control'], 'no-store')
+  assert.match(String(res.headers['strict-transport-security']), /max-age/)
+  assert.match(String(res.headers['content-security-policy']), /default-src 'none'/)
+  const pub = await app.inject({ method: 'GET', url: '/v1/delivery/alerts' })
+  assert.notEqual(pub.headers['cache-control'], 'no-store')
+})
+
+test('requests and repeated bad tokens are rate limited', async () => {
+  const strict = buildApp(db, { limits: { perMinute: 5, authFailuresPerMinute: 2 } })
+  const bad = () => strict.inject({ method: 'GET', url: '/v1/me', headers: { authorization: 'Bearer wrong' } })
+  assert.equal((await bad()).statusCode, 401)
+  assert.equal((await bad()).statusCode, 401)
+  const cut = await bad()
+  assert.equal(cut.statusCode, 429)
+  assert.ok(cut.headers['retry-after'])
+  for (let i = 0; i < 3; i++) await strict.inject({ method: 'GET', url: '/v1/locales' })
+  assert.equal((await strict.inject({ method: 'GET', url: '/v1/locales' })).statusCode, 429)
+  assert.equal((await strict.inject({ method: 'GET', url: '/v1/health' })).statusCode, 200) // health checks are exempt
+  await strict.close()
+})
+
+test('users get expiring tokens; personal data can be exported and erased', async () => {
+  assert.equal((await call('POST', '/v1/users', 'dev-priya', { name: 'X', email: 'x@a.example', role: 'viewer' })).status, 403)
+  const email = `sam${Date.now()}@airline.example`
+  const made = await call('POST', '/v1/users', 'dev-admin', { name: 'Sam Rivera', email, role: 'content_lead' })
+  assert.equal(made.status, 201)
+  assert.match(made.body.token, /^alt_/)
+  assert.ok(new Date(made.body.tokenExpiresAt) > new Date())
+  const [stored] = await db.query(`select token_hash from users where id = $1`, [made.body.id])
+  assert.notEqual(stored.token_hash, made.body.token) // only a hash is stored
+
+  const entry = await call('POST', '/v1/entries', made.body.token, { typeId: 'travel_info', title: unique('Sam page'), fields: { headline: 'Hi' } })
+  assert.equal(entry.status, 201)
+
+  // Access: the person themselves, or an administrator, but nobody else.
+  const mine = await call('GET', `/v1/users/${made.body.id}/export`, made.body.token)
+  assert.equal(mine.body.user.email, email)
+  assert.equal(mine.body.entriesAuthored.length, 1)
+  assert.ok(mine.body.activity.some((a: any) => a.action === 'Created entry'))
+  assert.equal((await call('GET', `/v1/users/${made.body.id}/export`, 'dev-priya')).status, 403)
+
+  // An expired token stops working.
+  await db.query(`update users set token_expires_at = now() - interval '1 minute' where id = $1`, [made.body.id])
+  assert.equal((await call('GET', '/v1/me', made.body.token)).status, 401)
+  await db.query(`update users set token_expires_at = now() + interval '1 day' where id = $1`, [made.body.id])
+
+  // Erasure removes name, email and token, and keeps authorship and audit history without identifying anyone.
+  const erased = await call('POST', `/v1/users/${made.body.id}/erase`, 'dev-admin')
+  assert.equal(erased.body.name, 'Deleted user')
+  assert.equal((await call('GET', '/v1/me', made.body.token)).status, 401)
+  const raw = JSON.stringify(await db.query(`select * from users where id = $1`, [made.body.id])) + JSON.stringify(await db.query(`select * from audit_log`))
+  assert.ok(!raw.includes('Sam Rivera') && !raw.includes(email), 'no personal data left behind')
+  const log = (await call('GET', '/v1/audit?limit=500', 'dev-admin')).body.items
+  assert.ok(log.some((i: any) => i.actor === 'Deleted user' && i.action === 'Created entry'))
+  assert.equal((await call('GET', `/v1/entries/${entry.body.id}`, 'dev-admin')).body.author.name, 'Deleted user')
+  assert.equal((await call('POST', `/v1/users/${made.body.id}/erase`, 'dev-admin')).status, 409)
+})
+
+test('demo users are refused in production', async () => {
+  const { seedDemoUsers } = await import('../src/seed.ts')
+  const before = process.env.NODE_ENV
+  process.env.NODE_ENV = 'production'
+  try { await assert.rejects(seedDemoUsers(db), /production/) } finally { process.env.NODE_ENV = before }
+})

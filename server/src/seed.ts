@@ -41,18 +41,31 @@ const PAGE_FIELDS = [
   { name: 'cta_label', type: 'text', localization: 'translated' },
 ]
 
-/** Loads reference data (locales, users, types, templates). Safe to run repeatedly. */
-export async function seedBase(db: Db) {
-  for (const l of LOCALES) {
-    await db.query(`insert into locales (code, market, language, currency, fallback, pack, rtl, is_source) values ($1,$2,$3,$4,$5,$6,$7,$8) on conflict (code) do nothing`, [...l])
-  }
+const SYSTEM: Actor = { id: 'system', name: 'System', role: 'developer' }
+
+/** Demo users with public tokens. Never allowed in production. */
+export async function seedDemoUsers(db: Db) {
+  if (process.env.NODE_ENV === 'production') throw new Error('Refusing to create demo users with public tokens in production.')
   for (const [id, name, email, role, token] of DEMO_USERS) {
     await db.query(`insert into users (id, name, email, role, token_hash) values ($1,$2,$3,$4,$5) on conflict (id) do nothing`, [id, name, email, role, hashToken(token)])
+  }
+}
+
+/** Development and test setup: reference data plus demo users. */
+export async function seedBase(db: Db) {
+  await seedDemoUsers(db)
+  await seedReference(db)
+}
+
+/** Loads reference data (locales, alert templates, starter content types). Safe to run repeatedly, and safe in production. */
+export async function seedReference(db: Db) {
+  for (const l of LOCALES) {
+    await db.query(`insert into locales (code, market, language, currency, fallback, pack, rtl, is_source) values ($1,$2,$3,$4,$5,$6,$7,$8) on conflict (code) do nothing`, [...l])
   }
   for (const t of TEMPLATES) {
     await db.query(`insert into alert_templates (id, name, severity, title, body) values ($1,$2,$3,$4,$5) on conflict (id) do nothing`, [...t])
   }
-  const dev: Actor = { id: 'u-lucas', name: 'Lucas Ferreira', role: 'developer' }
+  const dev = SYSTEM
   const [{ n }] = await db.query(`select count(*)::int as n from content_types`)
   if (n > 0) return
   await upsertType(db, dev, { id: 'promotion', name: 'Promotion', requiresLegal: true, fields: [

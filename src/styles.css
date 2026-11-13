@@ -4,7 +4,7 @@
   --panel: #f7f7f7;
   --ink: #111111;
   --ink-2: #454545;
-  --ink-3: #737373;
+  --ink-3: #686868;
   --line: #e3e3e3;
   --line-2: #c9c9c9;
   --hover: #f2f2f2;
@@ -25,7 +25,7 @@
   --panel: #151515;
   --ink: #ececec;
   --ink-2: #b5b5b5;
-  --ink-3: #8b8b8b;
+  --ink-3: #9a9a9a;
   --line: #272727;
   --line-2: #3b3b3b;
   --hover: #1b1b1b;
@@ -101,7 +101,7 @@ select option { color: #111; background: #fff; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn.primary { background: var(--ink); border-color: var(--ink); color: var(--bg); }
 .btn.primary:hover { opacity: 0.86; }
-.btn.danger { background: var(--red); border-color: var(--red); color: #fff; }
+.btn.danger { background: var(--red); border-color: var(--red); color: var(--bg); }
 .btn.ghost { border-color: transparent; background: transparent; color: var(--ink-2); }
 .btn.ghost:hover { background: var(--hover); color: var(--ink); }
 .btn.sm { height: 24px; padding: 0 7px; font-size: 12px; }
@@ -209,7 +209,7 @@ td.r, th.r { text-align: right; }
 .drawer-body { padding: 14px 12px; overflow: auto; flex: 1; display: flex; flex-direction: column; gap: 14px; }
 .toasts { position: fixed; bottom: 16px; right: 16px; align-items: flex-end; display: flex; flex-direction: column; gap: 6px; z-index: 60; }
 .toast { background: var(--ink); color: var(--bg); padding: 7px 12px; border-radius: 3px; font-size: 12.5px; max-width: 460px; }
-.toast.err { background: var(--red); color: #fff; }
+.toast.err { background: var(--red); color: var(--bg); }
 .toast svg { display: none; }
 
 /* Editor */
@@ -244,7 +244,7 @@ td.r, th.r { text-align: right; }
 /* Translation matrix: quiet when fine, loud only where work is needed. */
 .cell { width: 100%; min-width: 68px; height: 24px; border: 1px solid transparent; border-radius: 2px; background: none; font: 500 10.5px var(--mono); text-transform: uppercase; letter-spacing: 0.04em; cursor: pointer; }
 .cell:hover { background: var(--hover); }
-.cell.current { color: var(--line-2); }
+.cell.current { color: var(--ink-3); font-weight: 400; }
 .cell.stale { color: var(--amber); }
 .cell.missing { color: var(--red); }
 .cell.progress, .cell.review { color: var(--blue); }

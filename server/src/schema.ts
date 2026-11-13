@@ -6,8 +6,12 @@ create table if not exists users (
   email text not null unique,
   role text not null,
   token_hash text unique,
+  token_expires_at timestamptz,
+  deleted_at timestamptz,
   created_at timestamptz not null default now()
 );
+alter table users add column if not exists token_expires_at timestamptz;
+alter table users add column if not exists deleted_at timestamptz;
 
 create table if not exists locales (
   code text primary key,
@@ -99,13 +103,15 @@ create table if not exists audit_log (
   id bigserial primary key,
   at timestamptz not null default now(),
   actor_id text not null,
-  actor_name text not null,
   action text not null,
   target_type text not null,
   target_id text not null,
   target_label text not null default '',
   detail jsonb not null default '{}'
 );
+
+-- The log stores who by account id only; names are looked up when read, so erasing a person does not require editing the log.
+alter table audit_log drop column if exists actor_name;
 
 create or replace function audit_log_immutable() returns trigger as $$
 begin

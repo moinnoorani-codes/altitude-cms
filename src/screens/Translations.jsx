@@ -70,7 +70,7 @@ export default function Translations() {
                     const s = e.l10n[l.code], k = key(e, l.code)
                     return (
                       <td key={l.code} style={{ padding: '3px 4px' }}>
-                        <button className={`cell ${s} ${sel.includes(k) ? 'sel' : ''}`} aria-pressed={sel.includes(k)} aria-label={`${e.title}, ${l.market}: ${s}`}
+                        <button className={`cell ${s} ${sel.includes(k) ? 'sel' : ''}`} aria-pressed={sel.includes(k)} aria-label={`${LABEL[s]}: ${e.title}, ${l.market}`}
                           onClick={() => toggle(k)} onDoubleClick={() => { setLocale(l.code); nav('editor', { id: e.id }) }}>{LABEL[s]}</button>
                       </td>
                     )

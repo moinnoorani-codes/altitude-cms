@@ -25,10 +25,11 @@ export type Permission =
   | 'entry.publish'
   | 'alert.publish'
   | 'audit.read'
+  | 'users.manage'
 
 /** Role → permissions. Custom roles and per-market scoping come later (PRD SEC-01, SEC-02). */
 export const ROLES: Record<string, Permission[]> = {
-  admin: ['schema.write', 'entry.write', 'entry.translate', 'entry.submit', 'entry.approve', 'entry.legal_approve', 'entry.publish', 'alert.publish', 'audit.read'],
+  admin: ['schema.write', 'entry.write', 'entry.translate', 'entry.submit', 'entry.approve', 'entry.legal_approve', 'entry.publish', 'alert.publish', 'audit.read', 'users.manage'],
   content_lead: ['entry.write', 'entry.translate', 'entry.submit', 'entry.approve', 'entry.publish', 'alert.publish', 'audit.read'],
   market_manager: ['entry.translate', 'entry.submit'],
   legal: ['entry.legal_approve', 'audit.read'],
@@ -48,9 +49,9 @@ export const hashToken = (token: string) => createHash('sha256').update(token).d
 /** Appends to the audit log. Call inside the same transaction as the change it records. */
 export async function audit(q: Q, actor: Actor, action: string, targetType: string, targetId: string, label: string, detail: Record<string, unknown> = {}) {
   await q.query(
-    `insert into audit_log (actor_id, actor_name, action, target_type, target_id, target_label, detail)
-     values ($1, $2, $3, $4, $5, $6, $7::text::jsonb)`,
-    [actor.id, actor.name, action, targetType, targetId, label, json(detail)],
+    `insert into audit_log (actor_id, action, target_type, target_id, target_label, detail)
+     values ($1, $2, $3, $4, $5, $6::text::jsonb)`,
+    [actor.id, action, targetType, targetId, label, json(detail)],
   )
 }
 

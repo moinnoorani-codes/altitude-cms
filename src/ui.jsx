@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect } from 'react'
+import { cloneElement, createContext, isValidElement, useContext, useEffect, useId } from 'react'
 
 const PATHS = {
   home: 'M3 11l9-8 9 8M5 10v10h14V10',
@@ -107,12 +107,15 @@ export function Modal({ title, onClose, children, footer, wide }) {
 }
 
 export function Field({ label, help, badge, children }) {
+  // A single form control is tied to its label; anything else (chip groups, previews) becomes a labelled group.
+  const id = useId()
+  const control = isValidElement(children) && ['input', 'select', 'textarea'].includes(children.type)
   return (
-    <div className="field">
-      <label>
+    <div className="field" role={control ? undefined : 'group'} aria-labelledby={control ? undefined : id}>
+      <label id={id} htmlFor={control ? `${id}-c` : undefined}>
         {label} {badge}
       </label>
-      {children}
+      {control ? cloneElement(children, { id: `${id}-c` }) : children}
       {help && <span className="help">{help}</span>}
     </div>
   )

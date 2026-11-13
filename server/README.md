@@ -58,6 +58,9 @@ users with public tokens: `dev-priya` and `dev-hannah` (content lead), `dev-toma
 | `GET /v1/alert-templates`, `GET /v1/alerts` | Templates and alerts |
 | `POST /v1/alerts`, `POST /v1/alerts/:id/end` | Publish and end a travel alert |
 | `GET /v1/audit` | Audit log, newest first |
+| `GET /v1/users`, `POST /v1/users` | List users; create one with an expiring token (admin) |
+| `GET /v1/users/:id/export` | Everything held about one person (that person, or an admin) |
+| `POST /v1/users/:id/erase` | Remove a person's name, email and token; history stays, unattributed |
 | `GET /v1/delivery/entries`, `/v1/delivery/entries/:slug` | Public: published content for `?locale=` with fallback |
 | `GET /v1/delivery/alerts` | Public: live alerts, optionally for `?airport=` |
 
@@ -70,8 +73,20 @@ users with public tokens: `dev-priya` and `dev-hannah` (content lead), `dev-toma
 - Every alert needs an expiry (at most 7 days). Expiry is computed from the clock, with no background job.
 - Every change writes to the audit log in the same transaction. The log rejects updates and deletes.
 
+## Production
+
+With `NODE_ENV=production` the server requires `DATABASE_URL`, loads reference data only and refuses
+to create the demo users. Create the first administrator from the command line:
+
+```bash
+npm run create-user -- "Jane Doe" jane@airline.example admin
+```
+
+The token is printed once and expires after 90 days. See [`docs/COMPLIANCE.md`](../docs/COMPLIANCE.md)
+for what is and is not ready.
+
 ## Not built yet
 
 SSO and real user management, per-market permission scoping, assets, releases and branches,
 real channel connectors for alerts (hand-offs are recorded as queued), routes and fares, search,
-webhooks, CDN caching, rate limiting.
+webhooks, CDN caching.

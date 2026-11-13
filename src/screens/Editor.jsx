@@ -65,7 +65,7 @@ export default function Editor({ params }) {
     const locked = !isSource && def.localization === 'shared'
     const v = locked ? src[def.name] : values[def.name]
     const common = {
-      ref: (el) => (refs.current[def.name] = el), disabled: locked, dir: loc.rtl && !locked ? 'rtl' : 'ltr',
+      id: `f-${def.name}`, ref: (el) => (refs.current[def.name] = el), disabled: locked, dir: loc.rtl && !locked ? 'rtl' : 'ltr',
       placeholder: !isSource && !empty(src[def.name]) ? String(src[def.name]) : '',
       onFocus: () => setFocus(def.name), onBlur: () => setFocus(null),
     }
@@ -146,13 +146,13 @@ export default function Editor({ params }) {
               )}
               {isSource && (
                 <div className="field">
-                  <label>Title <span className="field-meta">internal name</span></label>
-                  <input className="input" value={title ?? entry.title} onChange={(e) => setTitle(e.target.value)} />
+                  <label htmlFor="f-title">Title <span className="field-meta">internal name</span></label>
+                  <input id="f-title" className="input" value={title ?? entry.title} onChange={(e) => setTitle(e.target.value)} />
                 </div>
               )}
               {defs.map((def) => (
                 <div key={def.name} className="field">
-                  <label>
+                  <label htmlFor={`f-${def.name}`}>
                     {def.name.replaceAll('_', ' ').replace(/^./, (c) => c.toUpperCase())}{def.required ? ' *' : ''}
                     <span className="field-meta">{def.type.replaceAll('_', ' ')} · {SCOPE[def.localization]}</span>
                   </label>

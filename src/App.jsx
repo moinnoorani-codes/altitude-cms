@@ -184,7 +184,7 @@ export default function App() {
               </select>
             </label>
             <div className="grow" />
-            <button className="search-trigger" onClick={() => setPalette(true)} aria-label="Search">
+            <button className="search-trigger" onClick={() => setPalette(true)}>
               <span className="lbl">Search</span>
               <span className="kbd">Ctrl K</span>
             </button>
@@ -194,7 +194,7 @@ export default function App() {
                 {DEV_USERS.map((u) => <option key={u.token} value={u.token}>{u.name} · {u.role}</option>)}
               </select>
             </label>
-            <Btn kind="ghost" size="sm" aria-label="Toggle theme" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>{theme === 'dark' ? 'Light' : 'Dark'}</Btn>
+            <Btn kind="ghost" size="sm" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>{theme === 'dark' ? 'Light theme' : 'Dark theme'}</Btn>
           </header>
           <main className="content" onClick={() => menu && setMenu(false)}>
             <Screen key={route.screen + (route.params.id || '') + who} params={route.params} />

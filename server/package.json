@@ -8,6 +8,7 @@
     "dev": "node --watch src/server.ts",
     "start": "node src/server.ts",
     "seed": "node src/seed.ts",
+    "create-user": "node src/create-user.ts",
     "test": "node --test test/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
